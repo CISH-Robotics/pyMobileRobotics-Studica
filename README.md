@@ -1,2 +1,2 @@
-# pyMB-WSC
- pyMobileRobotics WorldSkills Toolkit
+# pyMobileRobotics-Studica
+ pyMobileRobotics Studica Toolkit
