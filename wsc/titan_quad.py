@@ -219,5 +219,3 @@ class TitanQuad():
             int: Titan Quad Message ID
         """
         return titanID - 32
-
-test = TitanQuad()
