@@ -5,6 +5,7 @@ import struct
 
 
 class TitanQuad():
+    """Titan Quad Controller"""
 
     class __MessageType(Enum):
         SET_FREQ = 0x20C02A0
@@ -19,7 +20,7 @@ class TitanQuad():
         LSW = 0x20C0720
 
     __enabled = False
-    __encCanRecv = []
+    __encCanRecv = [None, None, None, None]
 
     def __init__(self, titanID=42, m0Frequency=2000, m1Frequency=2000, m2Frequency=2000, m3Frequency=2000):
         """Titan Quad
@@ -38,6 +39,9 @@ class TitanQuad():
         self.__encCanRecv[2] = CANReceiver(self.__getMsgID(TitanQuad.__MessageType.ENC_M2), 0xFFFFFFF, 1)
         self.__encCanRecv[3] = CANReceiver(self.__getMsgID(TitanQuad.__MessageType.ENC_M3), 0xFFFFFFF, 1)
         self.__lswCanRecv = CANReceiver(self.__getMsgID(TitanQuad.__MessageType.LSW), 0xFFFFFFF, 1)
+        CAN.flushRxFIFO()
+        CAN.flushTxFIFO()
+        CAN.setMode(CAN.Mode.NORMAL)
         self.setFrequency(0, m0Frequency)
         self.setFrequency(1, m1Frequency)
         self.setFrequency(2, m2Frequency)
