@@ -1,7 +1,7 @@
 from setuptools import find_packages
 from setuptools import setup
 
-setup(name='pyMobileRobotics-Studica',
+setup(name='pyMobileRobotics_Studica',
       version='0.0.1',
       description='pyMobileRobotics Studica Robot Toolkit',
       author='CISH Robotics',
