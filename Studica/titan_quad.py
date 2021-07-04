@@ -21,24 +21,25 @@ class TitanQuad():
 
     __enabled = False
     __encCanRecv = [None, None, None, None]
+    __encLastValue = [0, 0, 0, 0]
 
-    def __init__(self, titanID=42, m0Frequency=2000, m1Frequency=2000, m2Frequency=2000, m3Frequency=2000):
+    def __init__(self, titanID=42, m0Frequency=15600, m1Frequency=15600, m2Frequency=15600, m3Frequency=15600):
         """Titan Quad
 
         Args:
             titanID (int, optional): Titan Quad ID. Defaults to 42.
-            m0Frequency (int, optional): 馬達M0 PWM頻率. Defaults to 2000.
-            m1Frequency (int, optional): 馬達M1 PWM頻率. Defaults to 2000.
-            m2Frequency (int, optional): 馬達M2 PWM頻率. Defaults to 2000.
-            m3Frequency (int, optional): 馬達M3 PWM頻率. Defaults to 2000.
+            m0Frequency (int, optional): 馬達M0 PWM頻率. Defaults to 15600.
+            m1Frequency (int, optional): 馬達M1 PWM頻率. Defaults to 15600.
+            m2Frequency (int, optional): 馬達M2 PWM頻率. Defaults to 15600.
+            m3Frequency (int, optional): 馬達M3 PWM頻率. Defaults to 15600.
         """
         self.__titanID = titanID
         self.__titanMsgID = TitanQuad.__getTitanIDToMsgID(self.__titanID)
-        self.__encCanRecv[0] = CANReceiver(self.__getMsgID(TitanQuad.__MessageType.ENC_M0), 0xFFFFFFF, 1)
-        self.__encCanRecv[1] = CANReceiver(self.__getMsgID(TitanQuad.__MessageType.ENC_M1), 0xFFFFFFF, 1)
-        self.__encCanRecv[2] = CANReceiver(self.__getMsgID(TitanQuad.__MessageType.ENC_M2), 0xFFFFFFF, 1)
-        self.__encCanRecv[3] = CANReceiver(self.__getMsgID(TitanQuad.__MessageType.ENC_M3), 0xFFFFFFF, 1)
-        self.__lswCanRecv = CANReceiver(self.__getMsgID(TitanQuad.__MessageType.LSW), 0xFFFFFFF, 1)
+        self.__encCanRecv[0] = CANReceiver(self.__getMsgID(TitanQuad.__MessageType.ENC_M0), 0xFFFFFFF, 2)
+        self.__encCanRecv[1] = CANReceiver(self.__getMsgID(TitanQuad.__MessageType.ENC_M1), 0xFFFFFFF, 2)
+        self.__encCanRecv[2] = CANReceiver(self.__getMsgID(TitanQuad.__MessageType.ENC_M2), 0xFFFFFFF, 2)
+        self.__encCanRecv[3] = CANReceiver(self.__getMsgID(TitanQuad.__MessageType.ENC_M3), 0xFFFFFFF, 2)
+        self.__lswCanRecv = CANReceiver(self.__getMsgID(TitanQuad.__MessageType.LSW), 0xFFFFFFF, 2)
         CAN.flushRxFIFO()
         CAN.flushTxFIFO()
         CAN.setMode(CAN.Mode.NORMAL)
@@ -49,7 +50,7 @@ class TitanQuad():
         self.setDisabled()
 
     def setFrequency(self, motorID: int, frequency: int):
-        if not(motorID in range(0, 3)):
+        if motorID not in range(0, 4):
             raise ValueError("Incorrect Motor ID.")
         freqPpack = struct.pack('<i', frequency)
         message = [
@@ -106,11 +107,11 @@ class TitanQuad():
         Raises:
             ValueError: 電機ID錯誤
         """
-        if not(motorID in range(0, 3)):
+        if motorID not in range(0, 4):
             raise ValueError("Incorrect Motor ID.")
         dutyCycle = 1 if dutyCycle > 1 else dutyCycle
         dutyCycle = 0 if dutyCycle < 0 else dutyCycle
-        dutyCycle = dutyCycle * 255
+        dutyCycle = int(dutyCycle * 255)
         dutyCyclePpack = struct.pack('<B', dutyCycle)
         message = [
             motorID,
@@ -134,14 +135,18 @@ class TitanQuad():
         Returns:
             int: 編碼器數值
         """
-        if not(motorID in range(0, 3)):
+        if not(motorID in range(0, 4)):
             raise ValueError("Incorrect Motor ID.")
         canReceiver = self.__encCanRecv[motorID]
-        _, _, _, data, _ = canReceiver.readMessage()
-        encValuePack = [data[i] for i in range(4)]
-        encValuePack = bytes(encValuePack)
-        encValue = struct.unpack('<i', encValuePack)
-        return encValue
+        msgNum, _, _, data, _ = canReceiver.readMessage()
+        if msgNum > 0:
+            encValuePack = [data[i] for i in range(4)]
+            encValuePack = bytes(encValuePack)
+            encValue = struct.unpack('<i', encValuePack)[0]
+            self.__encLastValue[motorID] = encValue
+            return encValue
+        else:
+            return self.__encLastValue[motorID]
 
     def resetEncoder(self, motorID: int):
         """重置編碼器
@@ -152,7 +157,7 @@ class TitanQuad():
         Raises:
             ValueError: 電機ID錯誤
         """
-        if not(motorID in range(0, 3)):
+        if motorID not in range(0, 4):
             raise ValueError("Incorrect Motor ID.")
         message = [
             motorID,
@@ -161,7 +166,7 @@ class TitanQuad():
         message = bytearray(message)
         CAN.sendMessage(self.__getMsgID(TitanQuad.__MessageType.ENC_RST), message, periodMS=0)
 
-    def getLimitSwitch(self, motorID: int) -> tuple[bool, bool]:
+    def getLimitSwitch(self, motorID: int):
         """獲取電機的極限開關數值
 
         Args:
@@ -173,7 +178,7 @@ class TitanQuad():
         Returns:
             tuple[bool, bool]: 高極限數值, 低極限數值
         """
-        if not(motorID in range(0, 3)):
+        if motorID not in range(0, 4):
             raise ValueError("Incorrect Motor ID.")
         canReceiver = self.__lswCanRecv
         _, _, _, data, _ = canReceiver.readMessage()
