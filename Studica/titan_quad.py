@@ -19,7 +19,7 @@ class TitanQuad():
         ENC_RST = 0x20C0360
         LSW = 0x20C0720
 
-    __enabled = False
+    __enabled = None
     __encCanRecv = [None, None, None, None]
     __encLastValue = [0, 0, 0, 0]
 
@@ -69,17 +69,19 @@ class TitanQuad():
 
         **禁用狀態下，將無法控制電機旋轉。**
         """
-        self.__enabled = False
-        message = bytearray([0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00])
-        CAN.sendMessage(self.__getMsgID(TitanQuad.__MessageType.DISABLE), message, periodMS=50)
-        CAN.sendMessage(self.__getMsgID(TitanQuad.__MessageType.ENABLE), message, periodMS=0)
+        if self.__enabled or self.__enabled == None:
+            message = bytearray([0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00])
+            CAN.sendMessage(self.__getMsgID(TitanQuad.__MessageType.DISABLE), message, periodMS=50)
+            CAN.sendMessage(self.__getMsgID(TitanQuad.__MessageType.ENABLE), message, periodMS=0)
+            self.__enabled = False
 
     def setEnabled(self):
         """將Titan Quad設置為啟用狀態"""
-        self.__enabled = True
-        message = bytearray([0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00])
-        CAN.sendMessage(self.__getMsgID(TitanQuad.__MessageType.DISABLE), message, periodMS=0)
-        CAN.sendMessage(self.__getMsgID(TitanQuad.__MessageType.ENABLE), message, periodMS=50)
+        if not(self.__enabled):
+            message = bytearray([0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00])
+            CAN.sendMessage(self.__getMsgID(TitanQuad.__MessageType.DISABLE), message, periodMS=0)
+            CAN.sendMessage(self.__getMsgID(TitanQuad.__MessageType.ENABLE), message, periodMS=50)
+            self.__enabled = True
 
     def setSpeed(self, motorID: int, speed: float):
         """設置電機速度
