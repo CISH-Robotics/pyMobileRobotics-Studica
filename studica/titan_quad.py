@@ -17,7 +17,7 @@ class TitanQuad():
         ENC_M2 = 0x20C09E0
         ENC_M3 = 0x20C0A20
         ENC_RST = 0x20C0360
-        LSW = 0x20C0720
+        LSW = 0x20C0B60
 
     __enabled = None
     __encCanRecv = [None, None, None, None]
@@ -175,6 +175,7 @@ class TitanQuad():
         message = bytearray(message)
         CAN.sendMessage(self.__getMsgID(TitanQuad.__MessageType.ENC_RST), message, periodMS=0)
 
+    __lastLimitSwitch = [0, 0, 0, 0, 0, 0, 0, 0]
     def getLimitSwitch(self, motorID: int):
         """
         獲取電機的極限開關數值
@@ -191,7 +192,11 @@ class TitanQuad():
         if motorID not in range(0, 4):
             raise ValueError("Incorrect Motor ID.")
         canReceiver = self.__lswCanRecv
-        _, _, _, data, _ = canReceiver.readMessage()
+        msgNum, _, _, data, _ = canReceiver.readMessage()
+        if msgNum > 0:
+            self.__lastLimitSwitch = data
+        else:
+            data = self.__lastLimitSwitch
         if motorID == 0:
             high = data[0]
             low = data[1]
