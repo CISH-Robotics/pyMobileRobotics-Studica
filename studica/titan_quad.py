@@ -24,7 +24,8 @@ class TitanQuad():
     __encLastValue = [0, 0, 0, 0]
 
     def __init__(self, titanID=42, m0Frequency=15600, m1Frequency=15600, m2Frequency=15600, m3Frequency=15600):
-        """Titan Quad
+        """
+        Titan Quad
 
         Args:
             titanID (int, optional): Titan Quad ID. Defaults to 42.
@@ -65,7 +66,8 @@ class TitanQuad():
         CAN.sendMessage(self.__getMsgID(TitanQuad.__MessageType.SET_FREQ), message, periodMS=0)
 
     def setDisabled(self):
-        """將Titan Quad設置為禁用狀態
+        """
+        將Titan Quad設置為禁用狀態
 
         **禁用狀態下，將無法控制電機旋轉。**
         """
@@ -76,7 +78,8 @@ class TitanQuad():
             self.__enabled = False
 
     def setEnabled(self):
-        """將Titan Quad設置為啟用狀態"""
+        """
+        將Titan Quad設置為啟用狀態"""
         if not(self.__enabled):
             message = bytearray([0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00])
             CAN.sendMessage(self.__getMsgID(TitanQuad.__MessageType.DISABLE), message, periodMS=0)
@@ -84,7 +87,8 @@ class TitanQuad():
             self.__enabled = True
 
     def setSpeed(self, motorID: int, speed: float):
-        """設置電機速度
+        """
+        設置電機速度
 
         Args:
             motorID (int): 電機ID
@@ -98,7 +102,8 @@ class TitanQuad():
         self.setPWM(motorID, dutyCycle, inA, inB)
 
     def setPWM(self, motorID: int, dutyCycle: float, inA: bool, inB: bool):
-        """設置電機PWM數值
+        """
+        設置電機PWM數值
 
         Args:
             motorID (int): 電機ID
@@ -126,7 +131,8 @@ class TitanQuad():
         CAN.sendMessage(self.__getMsgID(TitanQuad.__MessageType.PWM), message, periodMS=0)
 
     def getEncoderValue(self, motorID: int) -> int:
-        """獲取編碼器數值
+        """
+        獲取編碼器數值
 
         Args:
             motorID (int): 電機ID
@@ -151,7 +157,8 @@ class TitanQuad():
             return self.__encLastValue[motorID]
 
     def resetEncoder(self, motorID: int):
-        """重置編碼器
+        """
+        重置編碼器
 
         Args:
             motorID (int): 電機ID
@@ -169,7 +176,8 @@ class TitanQuad():
         CAN.sendMessage(self.__getMsgID(TitanQuad.__MessageType.ENC_RST), message, periodMS=0)
 
     def getLimitSwitch(self, motorID: int):
-        """獲取電機的極限開關數值
+        """
+        獲取電機的極限開關數值
 
         Args:
             motorID (int): 電機ID
@@ -201,7 +209,8 @@ class TitanQuad():
         return high, low
 
     def getID(self) -> int:
-        """獲取Titan Quad ID
+        """
+        獲取Titan Quad ID
 
         Returns:
             int: Titan Quad ID
@@ -209,7 +218,8 @@ class TitanQuad():
         return self.__titanID
 
     def __getMsgID(self, messageType: __MessageType) -> int:
-        """獲取對應Message Type的完整Message ID
+        """
+        獲取對應Message Type的完整Message ID
 
         Args:
             messageType (__MessageType): 模式
@@ -221,7 +231,8 @@ class TitanQuad():
 
     @staticmethod
     def __getTitanIDToMsgID(titanID: int) -> int:
-        """獲取Titan ID轉Titan Message ID
+        """
+        獲取Titan ID轉Titan Message ID
 
         Args:
             titanID (int): Titan Quad ID
